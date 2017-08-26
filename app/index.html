@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+	
+</body>
+</html>
+
+<script type="text/javascript">
+	var domain = "http://localhost:8080/"
+
+	$.ajax({
+		type: "get",
+    	url: domain+"getCurrencies",// where you wanna post
+    	dataType: "json",
+    	error: function(jqXHR, textStatus, errorMessage) {
+    		console.log(errorMessage)
+    	},
+    	success: function(data) {
+    		console.log(data);
+    	}
+	}); 
+
+</script>
