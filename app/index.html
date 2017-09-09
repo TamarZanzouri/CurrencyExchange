@@ -1,25 +1,132 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-	
+	<div class="container">
+        <div id="chart_div"></div>
+    </div>
 </body>
 </html>
 
 <script type="text/javascript">
-	var domain = "http://localhost:8080/"
 
-	$.ajax({
-		type: "get",
-    	url: domain+"getCurrencies",// where you wanna post
-    	dataType: "json",
-    	error: function(jqXHR, textStatus, errorMessage) {
-    		console.log(errorMessage)
-    	},
-    	success: function(data) {
-    		console.log(data);
-    	}
-	}); 
+    var buildGraph = function(currencyList){
+        var currencyData = [];
+        var keys = [];
+
+        google.charts.load('current', {packages: ['corechart', 'line']});
+        google.charts.setOnLoadCallback(function(){
+            drawLineColors(currencyData, keys);
+        });
+        
+        for(var i=0; i<currencyList.length; i++){
+            if(!currencyData[currencyList[i].name]){
+                keys.push(currencyList[i].name);
+                currencyData[currencyList[i].name] = [];
+            }
+            currencyList[i].rateHistory.forEach(function(element) {
+                console.log(element.rate, element.date)
+                if(element.rate){
+                    var rate = [new Date(element.date.
+                                replace(/T/, ' ').
+                                replace(/\..+/, '')), parseFloat(element.rate)];
+                }
+                else{
+                    var rate = [new Date(element[0].date.
+                                replace(/T/, ' ').
+                                replace(/\..+/, '')), parseFloat(element[0].rate)];
+                }
+                currencyData[currencyList[i].name].push(rate);
+            });
+        }
+    }
+
+    function drawLineColors(currencyData, currencyNames) {
+            var data1 = new google.visualization.DataTable();
+            data1.addColumn('datetime', 'X');
+            data1.addColumn('number', currencyNames[0]);
+            data1.addRows(currencyData[currencyNames[0]]);
+
+            var data2 = new google.visualization.DataTable();
+            data2.addColumn('datetime', 'X');
+            data2.addColumn('number', currencyNames[1]);
+            data2.addRows(currencyData[currencyNames[1]]);
+
+            var options = {
+                hAxis: {
+                title: 'Time'
+                },
+                vAxis: {
+                title: 'Rate'
+                },
+                colors: ['#a52714', '#097138']
+            };
+
+            var joinedData = google.visualization.data.join(data1, data2, 'full', [[0, 0]], [1], [1]);
+            
+            var chart = new google.visualization.LineChart(document.querySelector('#chart_div'));
+            chart.draw(joinedData, {
+                height: 800,
+                width: 1000,
+                interpolateNulls: true
+            });
+        }
+
+
+    $(document).ready(function(){
+        var domain = "http://localhost:8080/";
+        var chosenCurrency = [];
+
+        $.ajax({
+            type: "get",
+            url: domain+"getCurrencies",// where you wanna post
+            dataType: "text",
+            error: function(jqXHR, textStatus, errorMessage) {
+                console.log(errorMessage)
+            },
+            success: function(data) {
+                var currenciesList = JSON.parse(data);
+                console.log(currenciesList);
+                currenciesList.forEach(function(element) {
+                    $(".container").append("<div><a href='#' class='currency' id='" + element.name + "'>" + element.name + "</a></div>");    
+                }, this);
+            }
+        }); 
+
+        $(document).on("click", ".currency", function(){
+            if(chosenCurrency.length == 0){
+                chosenCurrency.push(this.id);
+                alert("please select another currency");
+            }
+            else if(chosenCurrency.length == 1){
+                chosenCurrency.push(this.id);
+                $.ajax({
+                    type: "get",
+                    url: domain + "getRateHistory",
+                    dataType: "text",
+                    contentType: "json",
+                    data: {"chosenCurrency" : chosenCurrency},
+                    error: function(jqXHR, textStatus, errorMessage) {
+                        console.log(errorMessage)
+                    },
+                    success: function(data) {
+                        var currenciesList = JSON.parse(data);
+                        chosenCurrency = [];
+                        console.log(currenciesList);
+                        buildGraph(currenciesList);
+                    }
+                }); 
+            }
+                
+        });
+    });
+
 
 </script>

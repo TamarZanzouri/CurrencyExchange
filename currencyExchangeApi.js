@@ -9,19 +9,21 @@ var connection = new autobahn.Connection({
 exports.openApiConnection = function(){
   connection.onopen = function (session) {
   console.log("connection open");
-         
-        function marketEvent (args,kwargs) {
-          
-          dataLayer.insertData(args);
-             console.log(args, kwargs);
-        }
+
+        // function marketEvent (args,kwargs) {
+        //   dataLayer.insertData(args);
+        //   console.log(args, kwargs);
+        // }
         function tickerEvent (args,kwargs) {
-                console.log(args, kwargs);
+                dataLayer.insertData(args);
+                console.log("args ", args);
+                // console.log(args, kwargs);
+                // console.log(args, kwargs);
         }
         // function trollboxEvent (args,kwargs) {
         //         console.log(args);
         // }
-        session.subscribe('BTC_XMR', marketEvent);
+        //session.subscribe('BTC_XMR', marketEvent);
         //session.subscribe('BTC_REP', marketEvent);
         session.subscribe('ticker', tickerEvent);
         //session.subscribe('trollbox', trollboxEvent);
@@ -29,7 +31,6 @@ exports.openApiConnection = function(){
  
   connection.onclose = function (err) {
     console.log("Websocket connection closed " + err + "go fetch data");
-    dataLayer.getAllCurrencies();
   }
                        
   connection.open();
