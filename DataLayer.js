@@ -18,32 +18,32 @@ exports.insertData = function(data){
 				name : data[0],
 			};
 			var coinsCollection = db.collection('TblDigitalCurrencies');
-			coinsCollection.findOne({name : currency.name}, function(err, result){
-			if(err)
-			{
-				console.error("error ", err);
-				return;
-			}
-			if(result != null){
-				coinsCollection.update({name : currency.name}, { $push: { "rateHistory": rateHistory }, function(err)
-				{
-					if(err) console.error("error ", err)
-				}
+			if(coinsCollection){
+				coinsCollection.findOne({name : currency.name}, function(err, result){
+					if(err)
+					{
+						console.error("error ", err);					}
+					if(result != null){
+						coinsCollection.update({name : currency.name}, { $push: { "rateHistory": rateHistory }, function(err)
+						{
+							if(err) console.error("error ", err)
+						}
+						});
+					}
+					else{
+						currency.rateHistory = [rateHistory];
+						coinsCollection.insertOne(currency, function(err){
+							if(err) console.error(err);
+						});
+					}
 				});
 			}
-			else{
-				currency.rateHistory = [rateHistory];
-				coinsCollection.insertOne(currency, function(err){
-					if(err) console.error(err);
-				});
-			}
-		});
 	}).catch(e => console.error);
 }
 
 exports.getAllCurrencies = function(req, res){
 	mongoClient.connect(url, function(err ,db){
-		db.collection('TblCurrencies').find({}, { name : 1 }).toArray(function(err,items){
+		db.collection('TblDigitalCurrencies').distinct("name", {}, { name : 1 }, function(err,items){
 			if(err) console.error(err);
 			res.json(items);
 		 });;
@@ -58,15 +58,9 @@ exports.getRateHistory = function(req, res){
 		console.log("failed to get body " + err);
 	}
 	mongoClient.connect(url, function(err ,db){
-		// db.collection('TblCurrencies').aggregate({$match : {$or: [{ name : chosenClientCurrency[0]}, {name: chosenClientCurrency[1]}]}},
-		// 	{ $unwind: '$rateHistory' },
-		// 	{ $sort: {
-		// 		'scores.date': 1
-		// 	}}, function(err, doc){
-		// 		if(err) console.error(err);
-		// 		res.json(doc);
-		// 	});
-		db.collection('TblCurrencies').find({$or: [{ name : chosenClientCurrency[0]}, {name: chosenClientCurrency[1]}]}, { name: 1,rateHistory: 1}).toArray(function(err, docs){
+		db.collection('TblDigitalCurrencies').find({$or: [{ name : chosenClientCurrency[0]}, {name: chosenClientCurrency[1]}]},
+			{ name: 1,rateHistory: 1}
+			).toArray(function(err, docs){
 			if(err) console.error(err);
 			res.json(docs);
 		});

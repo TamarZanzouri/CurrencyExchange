@@ -10,6 +10,7 @@
 </head>
 <body>
 	<div class="container">
+        <div id="currencies"></div>
         <div id="chart_div"></div>
     </div>
 </body>
@@ -33,16 +34,9 @@
             }
             currencyList[i].rateHistory.forEach(function(element) {
                 console.log(element.rate, element.date)
-                if(element.rate){
                     var rate = [new Date(element.date.
                                 replace(/T/, ' ').
                                 replace(/\..+/, '')), parseFloat(element.rate)];
-                }
-                else{
-                    var rate = [new Date(element[0].date.
-                                replace(/T/, ' ').
-                                replace(/\..+/, '')), parseFloat(element[0].rate)];
-                }
                 currencyData[currencyList[i].name].push(rate);
             });
         }
@@ -73,8 +67,8 @@
             
             var chart = new google.visualization.LineChart(document.querySelector('#chart_div'));
             chart.draw(joinedData, {
-                height: 800,
-                width: 1000,
+                height: 500,
+                width: 800,
                 interpolateNulls: true
             });
         }
@@ -95,7 +89,7 @@
                 var currenciesList = JSON.parse(data);
                 console.log(currenciesList);
                 currenciesList.forEach(function(element) {
-                    $(".container").append("<div><a href='#' class='currency' id='" + element.name + "'>" + element.name + "</a></div>");    
+                    $("#currencies").append("<div><a href='#' class='currency' id='" + element + "'>" + element + "</a></div>");    
                 }, this);
             }
         }); 
@@ -105,7 +99,7 @@
                 chosenCurrency.push(this.id);
                 alert("please select another currency");
             }
-            else if(chosenCurrency.length == 1){
+            else if(chosenCurrency.length == 1 && chosenCurrency[0] != this.id){
                 chosenCurrency.push(this.id);
                 $.ajax({
                     type: "get",
@@ -124,7 +118,9 @@
                     }
                 }); 
             }
-                
+            else{
+                alert("You cant choose the same currency")
+            }
         });
     });
 
